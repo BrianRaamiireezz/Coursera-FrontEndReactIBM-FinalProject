@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { addItem } from './CartSlice';
 
@@ -11,7 +11,11 @@ function ProductList() {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
 
+    const cart = useSelector(state => state.cart.items);
+
     const [addedToCart, setAddedToCart] = useState({});
+
+    const dispatch = useDispatch();
 
     const plantsArray = [
         {
@@ -255,13 +259,12 @@ function ProductList() {
         setShowCart(false); // Hide the cart when navigating to About Us
     };
 
-    const handleContinueShopping = (e) => {
-        e.preventDefault();
+    const handleContinueShopping = () => {
         setShowCart(false);
     };
 
     const handleAddToCart = (plant) => {
-        useDispatch(addItem(plant));
+        dispatch(addItem(plant));
 
         setAddedToCart(
             (previousState) =>
@@ -270,6 +273,23 @@ function ProductList() {
                     ...previousState,
                     [plant.name]: true
                 }
+            )
+        );
+    }
+
+    const calculateCartTotalItems = () => {
+        return cart.reduce(
+            (accumulator, current_item) => (
+                accumulator + current_item.quantity
+            ),
+            0
+        );
+    }
+
+    const isAddedToCart = (plant) => {
+        return cart.find(
+            (item) => (
+                item.name == plant.name
             )
         );
     }
@@ -283,9 +303,13 @@ function ProductList() {
 
                         <a href="/" style={{ textDecoration: 'none' }}>
                             <div>
-                                <h3 style={{ color: 'white' }}>Paradise Nursery</h3>
+                                <h3 style={{ color: 'white' }}>
+                                    Paradise Nursery
+                                </h3>
 
-                                <i style={{ color: 'white' }}>Where Green Meets Serenity</i>
+                                <i style={{ color: 'white' }}>
+                                    Where Green Meets Serenity
+                                </i>
                             </div>
                         </a>
                     </div>
@@ -300,7 +324,25 @@ function ProductList() {
 
                     <div>
                         <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
-                            <h1 className='cart'>
+                            <h1
+                                className='cart'
+                                style={{
+                                    position: "relative"
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        width: "100%",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    {
+                                        calculateCartTotalItems()
+                                    }
+                                </span>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 256 256"
@@ -329,9 +371,9 @@ function ProductList() {
                                         d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8"
                                         fill="none"
                                         stroke="#faf9f9"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
                                         id="mainIconPathAttribute"
                                     >
                                     </path>
@@ -350,7 +392,11 @@ function ProductList() {
                                 plantsArray.map(
                                     (set, index) => (
                                         <div key={index}>
-                                            <h2>
+                                            <h2
+                                                style={{
+                                                    textAlign: "center"
+                                                }}
+                                            >
                                                 {set.category}
                                             </h2>
 
@@ -377,9 +423,17 @@ function ProductList() {
                                                                     {plant.cost}
                                                                 </div>
 
-                                                                <button 
-                                                                    className="product-button" 
+                                                                <button
+                                                                    className=
+                                                                    {"product-button " +
+                                                                        (
+                                                                            isAddedToCart(plant)
+                                                                                ? "product-button--added-to-cart"
+                                                                                : ""
+                                                                        )
+                                                                    }
                                                                     onClick={() => handleAddToCart(plant)}
+                                                                    disabled={isAddedToCart(plant) ? true : false}
                                                                 >
                                                                     Add to cart
                                                                 </button>
